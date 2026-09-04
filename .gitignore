@@ -2,3 +2,6 @@ __pycache__/
 .env
 .env.local
 node_modules/
+# 撮った画像とビルド結果はリポジトリに入れない。
+# 毎週撮るので、入れるとリポジトリが際限なく太る。
+dist/
