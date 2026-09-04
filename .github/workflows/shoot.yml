@@ -1,0 +1,65 @@
+name: Shoot
+
+# 商品ページをスマホ・タブレット・PCの幅で撮る。
+
+on:
+  schedule:
+    - cron: '0 23 * * 1'   # 毎週火曜 08:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  shoot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: playwright を入れる
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: 撮る
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python scripts/shoot.py
+
+      - name: 並べる
+        run: node scripts/build_site.mjs
+
+      - name: 記録を commit する
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data/
+          if git diff --cached --quiet; then
+            echo "記録に変化はありませんでした。"
+          else
+            git commit -m "スクショを撮り直す"
+            git pull --rebase --autostash origin main && git push
+          fi
+
+      # **画像は dist/ に置いたまま配信する。** リポジトリには入れない
+      # （毎週撮るとリポジトリが際限なく太るため）。
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v4

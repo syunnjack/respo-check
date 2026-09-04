@@ -1,0 +1,10 @@
+{
+  "_note": "撮るページ。自分の商品ページを入れる。",
+  "pages": [
+    {
+      "name": "見本（楽天の商品ページ）",
+      "slug": "sample-rakuten",
+      "url": "https://item.rakuten.co.jp/kinoco/wallet-04/"
+    }
+  ]
+}
